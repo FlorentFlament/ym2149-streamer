@@ -22,6 +22,13 @@ int main() {
     for (i=0; i<15; i++) {
       send_data(i, data[i]);
     }
+
+    // Have LED blink with noise (drums)
+    if (~data[7] & 0x38) {
+      PORTB |=   1 << LED;
+    } else {
+      PORTB &= ~(1 << LED);
+    }
   }
 
   return 0;
