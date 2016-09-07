@@ -118,4 +118,5 @@ def main():
         fd.write('\x00'*16)
         fd.flush()
 
-main()
+if __name__ == '__main__':
+    main()
