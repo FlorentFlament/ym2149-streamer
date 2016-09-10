@@ -27,7 +27,7 @@ int main() {
     for (i=0; i<16; i++) {
       data[i] = getByte();
     }
-    for (i=0; i<15; i++) {
+    for (i=0; i<14; i++) {
       send_data(i, data[i]);
     }
 
