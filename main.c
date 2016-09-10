@@ -6,6 +6,13 @@ void set_led_out(void) {
   DDRB |= 1 << LED;
 }
 
+void clear_registers(void) {
+  int i;
+  for (i=0; i<14; i++) {
+    send_data(i, 0);
+  }
+}
+
 int main() {
   unsigned int i;
   unsigned char data[16];
@@ -14,6 +21,7 @@ int main() {
   set_bus_ctl();
   initUART();
   set_led_out();
+  clear_registers();
 
   for/*ever*/(;;) {
     for (i=0; i<16; i++) {
