@@ -88,6 +88,10 @@ def main():
     header = None
     data = None
 
+    if len(sys.argv) != 3:
+        print "Syntax is: {} <output_device> <ym_filepath>".format(sys.argv[0])
+        exit(0)
+
     with open(sys.argv[2]) as fd:
         ym = YmReader(fd)
         ym.dump_header()
