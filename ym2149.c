@@ -18,9 +18,9 @@ void set_ym_clock(void) {
   TCCR2A |=   0x01 << WGM21;
   TCCR2A &= ~(0x01 << WGM20);
   // Use CLK I/O without prescaling
-  TCCR2B &= ~(0x01 << WGM22);
-  TCCR2B &= ~(0x01 << WGM21);
-  TCCR2B |=   0x01 << WGM20;
+  TCCR2B &= ~(0x01 << CS22);
+  TCCR2B &= ~(0x01 << CS21);
+  TCCR2B |=   0x01 << CS20;
   // Divide the 16MHz clock by 8 -> 2MHz
   OCR2A = 3;
 }
