@@ -1,3 +1,4 @@
+#include "uart.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -6,10 +7,17 @@
 #include "ym2149.h"
 
 //Timer
-const char *sampleOffset;
+const unsigned char *sampleOffset;
 char sampleChannel;
 int sampleCounter = 0;
 int sampleLength = 0;
+
+//Digidrum storage (flash)
+unsigned char dd_buffer[1500];
+unsigned int dd_size = 0;
+unsigned char dd_index = 0;
+unsigned int dd_offsets[32];
+unsigned int dd_lengths[32];
 
 ISR(TIMER1_COMPA_vect)
 {
@@ -18,48 +26,43 @@ ISR(TIMER1_COMPA_vect)
     }
 }
 
-void fx_setupTimer()
+void fx_loadDigidrum() {
+    int n, length;
+
+    length = getByte();
+    length = (length << 8) & getByte();
+
+    if (1500 - dd_size < (unsigned int)length) {  // If we're out of memory, repeat last sample
+        dd_offsets[dd_index] = dd_size;
+        dd_lengths[dd_index] = dd_lengths[dd_index - 1];
+        dd_index ++;
+        // We still have to flush the cmd
+        for (n = 0; n < length; n++) {
+            getByte();
+        }
+        return;
+    }
+    // Else load sample normally  
+    dd_offsets[dd_index] = dd_size;
+    dd_lengths[dd_index ++] = length;
+    for (n = 0; n < length; n++) {
+        dd_buffer[dd_size++] = getByte();
+    }
+}
+
+void fx_playDigidrum(char index, char channel, unsigned int divider)
 {
-    //timer1 : sample player
     cli();
     TCCR1A = 0;              //timer reset
     TCCR1B = 0;              //timer reset
-    OCR1A = 1451;            //period for 11025 Hz at 16Mhz
+    OCR1A = divider;
     TCCR1B |= (1 << WGM12);  //CTC mode
     TCCR1B |= (1 << CS10);   // timer ticks = clock ticks
     TIMSK1 |= (1 << OCIE1A); // enable compare
-    sei();
-}
 
-void fx_playDigidrum(char index, char channel)
-{
-    cli();
     sampleCounter = 0;
     sampleChannel = channel;
-    if (index == 0)
-    {
-        sampleOffset = s0;
-        sampleLength = s0Length;
-    }
-    else if (index == 1)
-    {
-        sampleOffset = s1;
-        sampleLength = s1Length;
-    }
-    else if (index == 2)
-    {
-        sampleOffset = s2;
-        sampleLength = s2Length;
-    }
-    else if (index == 3)
-    {
-        sampleOffset = s3;
-        sampleLength = s3Length;
-    }
-    else if (index == 4)
-    {
-        sampleOffset = s4;
-        sampleLength = s4Length;
-    }
+    sampleOffset = dd_buffer + dd_offsets[(int)index];
+    sampleLength = dd_lengths[(int)index];
     sei();
 }

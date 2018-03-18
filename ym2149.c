@@ -42,6 +42,7 @@ void set_data(char data) {
 void set_registers(unsigned char *regs, unsigned int mask) {
   int addr;
 
+  cli();
   set_data_out();
 
   for(addr = 0; addr < 16; addr++) {
@@ -61,6 +62,7 @@ void set_registers(unsigned char *regs, unsigned int mask) {
     }
     regs++;
   }
+  sei();
 }
 
 char get_data(void) {

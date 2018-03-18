@@ -1,3 +1,2 @@
-
-void fx_setupTimer();
-void fx_playDigidrum(char index, char channel);
+void fx_loadDigidrum();
+void fx_playDigidrum(char index, char channel, unsigned int divider);
