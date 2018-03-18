@@ -22,7 +22,7 @@ main.hex: main.elf
 	avr-objcopy -j .text -j .data -O ihex $^ $@
 
 flash: main.hex
-	avrdude -p$(avrType) -c$(programmerType) -P$(programmerDev) -v -U flash:w:$<
+	avrdude -p$(avrType) -b57600 -c$(programmerType) -P$(programmerDev) -v -U flash:w:$<
 
 clean:
 	rm -f main.hex main.elf $(objects)
