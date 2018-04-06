@@ -15,7 +15,7 @@ void clear_registers(void) {
 
 int main() {
   unsigned int i;
-  unsigned char data[16];
+  unsigned char data[14];
 
   set_ym_clock();
   set_bus_ctl();
@@ -24,7 +24,7 @@ int main() {
   clear_registers();
 
   for/*ever*/(;;) {
-    for (i=0; i<16; i++) {
+    for (i=0; i<14; i++) {
       data[i] = getByte();
     }
     // Do not write r13 if it equals 0xff (prevent enveloppe reset)
