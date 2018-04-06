@@ -27,9 +27,8 @@ int main() {
     for (i=0; i<16; i++) {
       data[i] = getByte();
     }
-    for (i=0; i<14; i++) {
-      send_data(i, data[i]);
-    }
+    // Do not write r13 if it equals 0xff (prevent enveloppe reset)
+    set_registers(data, data[13] == 0xff ? 12 : 13);
 
     // Have LED blink with noise (drums)
     if (~data[7] & 0x38) {
