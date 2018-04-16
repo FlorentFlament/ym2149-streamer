@@ -157,12 +157,10 @@
          r1:  -  -  -  -  X  X  X  X   Period voice A
          r2:  X  X  X  X  X  X  X  X   Period voice B
          r3:  -  -  -  -  X  X  X  X   Period voice B
-
          r4:  X  X  X  X  X  X  X  X   Period voice C
          r5:  -  -  -  -  X  X  X  X   Period voice C
          r6:  -  -  -  X  X  X  X  X   Noise period
          r7:  X  X  X  X  X  X  X  X   Mixer control
-
          r8:  -  -  -  X  X  X  X  X   Volume voice A
          r9:  -  -  -  X  X  X  X  X   Volume voice B
         r10:  -  -  -  X  X  X  X  X   Volume voice C
