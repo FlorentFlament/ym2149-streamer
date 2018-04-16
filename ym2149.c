@@ -60,24 +60,28 @@ void set_data(char data) {
   _delay_us(1.); // tDH = 80ns
 }
 
-void set_registers(unsigned char *regs, int n) {
+void set_registers(unsigned char *regs, unsigned int mask) {
   int addr;
 
   set_data_out();
 
-  for(addr = 0; addr < n; addr++, regs++) {
-    PORTC = (PORTC & 0xf3) | ADDRESS_MODE;
-    PORTC = (PORTC & 0xfc) | (addr & 0x03); // 2 first bits ont PORTC
-    PORTD = (PORTD & 0x02) | (addr & 0xfc); // 6 last bits on PORTD
-    _delay_us(1.); //tAS = 300ns
-    PORTC = (PORTC & 0xf3) /*INACTIVE*/ ;
-    _delay_us(1.); //tAH = 80ns
-    PORTC = (PORTC & 0xfc) | (*regs & 0x03); // 2 first bits ont PORTC
-    PORTD = (PORTD & 0x02) | (*regs & 0xfc); // 6 last bits on PORTD
-    PORTC = (PORTC & 0xf3) | DATA_WRITE;
-    _delay_us(1.); // 300ns < tDW < 10us
-    PORTC = (PORTC & 0xf3) /*INACTIVE*/ ; // To fit tDW max
-    _delay_us(1.); // tDH = 80ns
+  for(addr = 0; addr < 16; addr++) {
+    if (mask & 1) {
+      PORTC = (PORTC & 0xf3) | ADDRESS_MODE;
+      PORTC = (PORTC & 0xfc) | (addr & 0x03); // 2 first bits ont PORTC
+      PORTD = (PORTD & 0x02) | (addr & 0xfc); // 6 last bits on PORTD
+      _delay_us(1.); //tAS = 300ns
+      PORTC = (PORTC & 0xf3) /*INACTIVE*/ ;
+      _delay_us(1.); //tAH = 80ns
+      PORTC = (PORTC & 0xfc) | (*regs & 0x03); // 2 first bits ont PORTC
+      PORTD = (PORTD & 0x02) | (*regs & 0xfc); // 6 last bits on PORTD
+      PORTC = (PORTC & 0xf3) | DATA_WRITE;
+      _delay_us(1.); // 300ns < tDW < 10us
+      PORTC = (PORTC & 0xf3) /*INACTIVE*/ ; // To fit tDW max
+      _delay_us(1.); // tDH = 80ns
+    }
+    regs++;
+    mask >>= 1;
   }
 }
 

@@ -7,14 +7,13 @@ void clear_registers(void)
   unsigned char rclear[] = {0, 0, 0, 0, 0, 0, 0, 0x40,
                            0, 0, 0, 0, 0, 0, 0, 0};
 
-  set_registers(rclear, 16);
+  set_registers(rclear, 0xffff);
 }
 
 int main()
 {
   unsigned int i;
   unsigned char r[16];
-  unsigned char cban_leds;
   // unsigned char dd_cmd, dd_sample;
 
   set_ym_clock();
@@ -53,19 +52,18 @@ int main()
     //   fx_playDigidrum(dd_sample, dd_voice);
     // }
 
-    // Set IOA port as output
-    r[7] |= 0x40;
+    // YM Nano hardware I/O on port A and B of the  PSG
+    r[7] |= 0x40; // Setup IOA as output
+    r[7] &= 0x7F; // Setup IOB as input
+
+    // Have LED blink with noise (drums)
+    r[14] = (~r[7] & 0x38) ? 0x01 : 0x00;
+    // Add ABC volume LEDs
+    r[14] |= ((r[8] & 0x08) >> 2) | ((r[9] & 0x08) >> 1) | (r[10] & 0x08);
 
     // As we've seen, r13 has a particular status. If the value stored in the file is 0xff,
     // YM emulator will not reset the waveform position.
-    set_registers(r, r[13] == 0xff ? 12 : 13);
-
-    // Have LED blink with noise (drums)
-    cban_leds = (~r[7] & 0x38) ? 0x01 : 0x00;
-    // Add ABC volume LEDs
-    cban_leds |= ((r[8] & 0x08) >> 2) | ((r[9] & 0x08) >> 1) | (r[10] & 0x08);
-    // Set IOA
-    send_data(14, cban_leds);
+    set_registers(r, r[13] == 0xff ? 0x5fff : 0x7fff);
   }
 
   return 0;
