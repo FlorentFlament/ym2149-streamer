@@ -5,7 +5,7 @@
 void clear_registers(void)
 {
   unsigned char rclear[] = {0, 0, 0, 0, 0, 0, 0, 0x40,
-                           0, 0, 0, 0, 0, 0, 0, 0};
+                            0, 0, 0, 0, 0, 0, 0, 0};
 
   set_registers(rclear, 0xffff);
 }
@@ -13,21 +13,24 @@ void clear_registers(void)
 int main()
 {
   unsigned int i;
+  unsigned int mask;
   unsigned char r[16];
   // unsigned char dd_cmd, dd_sample;
 
   set_ym_clock();
   set_bus_ctl();
   initUART();
-  //fx_setupTimer();
+  fx_setupTimer();
 
   clear_registers();
 
-  for/*ever*/(;;)
-  {
-    for (i = 0; i < 14; i++)
-    {
-      r[i] = getByte();
+  for/*ever*/(;;) {
+    mask = 0;
+    mask = getByte();               // Read mask MSB
+    mask = (mask << 8) | getByte(); // Read mask LSB
+    for (i = 0; i < 16; i++) {      // Read masked registers, leave others unchanged
+      if (mask & (1 << i))
+        r[i] = getByte();
     }
 
     // // r3 free bits are used to code a DD start.
@@ -47,7 +50,7 @@ int main()
     //   // If a DD starts on voice V, the volume register corresponding to V (Ex r8 for voice A,
     //   // r9 for B and r10 for C) contains the sample number in 5 low bits (That mean you have
     //   // 32 digiDrum max in a song).
-    //   dd_sample = r[(int)dd_voice] & 0x1f;
+    //   dd_sample = r[(int)dd_voice] & 0x1f & 0;
 
     //   fx_playDigidrum(dd_sample, dd_voice);
     // }
@@ -60,10 +63,10 @@ int main()
     r[14] = (~r[7] & 0x38) ? 0x01 : 0x00;
     // Add ABC volume LEDs
     r[14] |= ((r[8] & 0x08) >> 2) | ((r[9] & 0x08) >> 1) | (r[10] & 0x08);
+    // Set r[14]
+    mask |= 0x4000;
 
-    // As we've seen, r13 has a particular status. If the value stored in the file is 0xff,
-    // YM emulator will not reset the waveform position.
-    set_registers(r, r[13] == 0xff ? 0x5fff : 0x7fff);
+    set_registers(r, mask);
   }
 
   return 0;

@@ -24,7 +24,7 @@ void fx_setupTimer()
     cli();
     TCCR1A = 0;              //timer reset
     TCCR1B = 0;              //timer reset
-    OCR1A = 1450;            //period for 11025 kHz at 16Mhz
+    OCR1A = 1451;            //period for 11025 Hz at 16Mhz
     TCCR1B |= (1 << WGM12);  //CTC mode
     TCCR1B |= (1 << CS10);   // timer ticks = clock ticks
     TIMSK1 |= (1 << OCIE1A); // enable compare

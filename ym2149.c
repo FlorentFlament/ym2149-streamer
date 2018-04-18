@@ -66,7 +66,7 @@ void set_registers(unsigned char *regs, unsigned int mask) {
   set_data_out();
 
   for(addr = 0; addr < 16; addr++) {
-    if (mask & 1) {
+    if (mask & (1<<addr)) {
       PORTC = (PORTC & 0xf3) | ADDRESS_MODE;
       PORTC = (PORTC & 0xfc) | (addr & 0x03); // 2 first bits ont PORTC
       PORTD = (PORTD & 0x02) | (addr & 0xfc); // 6 last bits on PORTD
@@ -81,7 +81,6 @@ void set_registers(unsigned char *regs, unsigned int mask) {
       _delay_us(1.); // tDH = 80ns
     }
     regs++;
-    mask >>= 1;
   }
 }
 
