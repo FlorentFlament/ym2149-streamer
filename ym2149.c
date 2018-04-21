@@ -7,27 +7,6 @@
 #define DATA_WRITE (0x02 << 2)
 #define ADDRESS_MODE (0x03 << 2)
 
-// USe TIMER2 to generate the YM2149 clock
-// Sets a 4MHz clock OC2A (PORTB3)
-void set_ym_clock(void) {
-  cli();
-  DDRB |= 0x01 << PORTB3;
-  // Toggle OC2A on compare match
-  TCCR2A &= ~(0x01 << COM2A1);
-  TCCR2A |=   0x01 << COM2A0;
-  // Clear Timer on Compare match
-  TCCR2B &= ~(0x01 << WGM22);
-  TCCR2A |=   0x01 << WGM21;
-  TCCR2A &= ~(0x01 << WGM20);
-  // Use CLK I/O without prescaling
-  TCCR2B &= ~(0x01 << CS22);
-  TCCR2B &= ~(0x01 << CS21);
-  TCCR2B |=   0x01 << CS20;
-  // Divide the 16MHz clock by 8 -> 2MHz
-  OCR2A = 3;
-  sei();
-}
-
 void set_bus_ctl(void) {
   DDRC |= 0x0c; // Bits 2 and 3
 }

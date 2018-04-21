@@ -17,7 +17,6 @@ int main()
   unsigned char r[16];
   // unsigned char dd_cmd, dd_sample;
 
-  set_ym_clock();
   set_bus_ctl();
   initUART();
   fx_setupTimer();
