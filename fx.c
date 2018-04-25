@@ -3,7 +3,6 @@
 #include <avr/interrupt.h>
 
 #include "fx.h"
-#include "samples.h"
 #include "ym2149.h"
 
 //Timer
@@ -11,6 +10,11 @@ const unsigned char *sampleOffset;
 char sampleChannel;
 int sampleCounter = 0;
 int sampleLength = 0;
+
+unsigned int dd_size;
+unsigned char * dd_buffer;
+int dd_index;
+int dd_offsets[32], dd_lengths[32];
 
 // ISR(TIMER1_COMPA_vect)
 // {

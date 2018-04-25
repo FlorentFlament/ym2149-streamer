@@ -12,7 +12,7 @@ void clear_registers(void)
   unsigned char rclear[] = {0, 0, 0, 0, 0, 0, 0, 0x40,
                             0, 0, 0, 0, 0, 0, 0, 0};
 
-  set_registers(rclear, 0xffff);
+  set_registers(rclear, 0x7fff);
 }
 
 ISR(TIMER1_COMPA_vect) {
@@ -41,13 +41,11 @@ int main()
   unsigned int i;
   unsigned char cmd;
   unsigned int mask;
-  unsigned char cmd;
   unsigned char r[16];
-  unsigned char dd_cmd;
+  // unsigned char dd_cmd;
 
   set_bus_ctl();
   initUART();
-  //fx_setupTimer();
   setup50HzTimer();
   clear_registers();
 
@@ -62,6 +60,8 @@ int main()
         if (mask & (1 << i))
           r[i] = getByte();
       }
+    } else {
+      clear_registers();
     }
 
 
@@ -71,29 +71,29 @@ int main()
 
     // r3 free bits are used to code a DD start.
     // r3 b5-b4 is a 2bits code wich means:
-    dd_cmd = (r[3] & 0x30) >> 4;
+    // dd_cmd = (r[3] & 0x30) >> 4;
 
     // 00:     No DD
     // 01:     DD starts on voice A
     // 10:     DD starts on voice B
     // 11:     DD starts on voice C
-    if (dd_cmd)
-    {
-      char dd_sample, dd_voice;
-      char TP, TC;
-      unsigned int dd_div;
-      // WARNING:
-      // If a DD starts on voice V, the volume register corresponding to V (Ex r8 for voice A,
-      // r9 for B and r10 for C) contains the sample number in 5 low bits (That mean you have
-      // 32 digiDrum max in a song).
-      dd_voice = 7 + dd_cmd;
-      dd_sample = r[(int)dd_voice] & 0x1f;
-      TP = mfpPrediv[(r[8] >> 5) & 0x07];
-			TC = r[15];
-      dd_div = MFP2AVR * (TP * TC);
+    // if (dd_cmd)
+    // {
+    //   char dd_sample, dd_voice;
+    //   char TP, TC;
+    //   unsigned int dd_div;
+    //   // WARNING:
+    //   // If a DD starts on voice V, the volume register corresponding to V (Ex r8 for voice A,
+    //   // r9 for B and r10 for C) contains the sample number in 5 low bits (That mean you have
+    //   // 32 digiDrum max in a song).
+    //   dd_voice = 7 + dd_cmd;
+    //   dd_sample = r[(int)dd_voice] & 0x1f;
+    //   TP = mfpPrediv[(r[8] >> 5) & 0x07];
+		// 	TC = r[15];
+    //   dd_div = MFP2AVR * (TP * TC);
 
-      fx_playDigidrum(dd_sample, dd_voice, dd_div);
-    }
+    //   fx_playDigidrum(dd_sample, dd_voice, dd_div);
+    // }
 
     // YM Nano hardware I/O on port A and B of the  PSG
     r[7] |= 0x40; // Setup IOA as output
