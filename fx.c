@@ -12,19 +12,12 @@ char sampleChannel;
 int sampleCounter = 0;
 int sampleLength = 0;
 
-//Digidrum storage (flash)
-unsigned char dd_buffer[1500];
-unsigned int dd_size = 0;
-unsigned char dd_index = 0;
-unsigned int dd_offsets[32];
-unsigned int dd_lengths[32];
-
-ISR(TIMER1_COMPA_vect)
-{
-    if (sampleCounter < sampleLength) {
-        send_data(sampleChannel, pgm_read_byte_near(sampleOffset + sampleCounter++));
-    }
-}
+// ISR(TIMER1_COMPA_vect)
+// {
+//     if (sampleCounter < sampleLength) {
+//         send_data(sampleChannel, pgm_read_byte_near(sampleOffset + sampleCounter++));
+//     }
+// }
 
 void fx_loadDigidrum() {
     int n, length;

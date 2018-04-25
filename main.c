@@ -5,6 +5,7 @@
 #define MFP2AVR (625/96)    // 16MHz / 2.4576MHz === 625/96
 // ATARI-ST MFP chip predivisor
 static const int mfpPrediv[8] = {0, 4, 10, 16, 50, 64, 100, 200};
+volatile unsigned char SYNC = 1;
 
 void clear_registers(void)
 {
@@ -14,36 +15,59 @@ void clear_registers(void)
   set_registers(rclear, 0xffff);
 }
 
+ISR(TIMER1_COMPA_vect) {
+  SYNC = 0; 
+}
+
+void sync() {
+  SYNC = 1;
+  while(SYNC == 1);
+}
+
+void setup50HzTimer() {
+    //timer1 : frameRateHz interrupt
+    cli();
+    TCCR1A = 0;              //timer reset
+    TCCR1B = 0;              //timer reset
+    OCR1A = 4999;            //period for 50 Hz at 16Mhz / 64
+    TCCR1B |= (1 << WGM12);  //CTC mode
+    TCCR1B |= ((1 << CS10) | (1 << CS11));   // timer ticks = clock ticks/64
+    TIMSK1 |= (1 << OCIE1A); // enable compare
+    sei();
+}
+
 int main()
 {
   unsigned int i;
   unsigned char cmd;
   unsigned int mask;
+  unsigned char cmd;
   unsigned char r[16];
   unsigned char dd_cmd;
 
   set_bus_ctl();
   initUART();
-
+  //fx_setupTimer();
+  setup50HzTimer();
   clear_registers();
 
   for/*ever*/(;;) {
     mask = 0;
-
+    putByte(0); // Ready
     cmd = getByte();
-    switch(cmd) {
-      case 0: // masked registers
-        mask = getByte();               // Read mask MSB
-        mask = (mask << 8) | getByte(); // Read mask LSB
-        for (i = 0; i < 16; i++) {      // Read masked registers, leave others unchanged
-          if (mask & (1 << i))
-            r[i] = getByte();
-        }
-        break;
-      case 1: // send digidrum
-        fx_loadDigidrum();
-        break;  
+    if (cmd == 0) {
+      mask = getByte();               // Read mask MSB
+      mask = (mask << 8) | getByte(); // Read mask LSB
+      for (i = 0; i < 16; i++) {      // Read masked registers, leave others unchanged
+        if (mask & (1 << i))
+          r[i] = getByte();
+      }
     }
+
+
+    // // r3 free bits are used to code a DD start.
+    // // r3 b5-b4 is a 2bits code wich means:
+    // dd_cmd = (r[3] & 0x30) >> 4;
 
     // r3 free bits are used to code a DD start.
     // r3 b5-b4 is a 2bits code wich means:
@@ -82,7 +106,10 @@ int main()
     // Set r[14]
     mask |= 0x4000;
 
+    // sync to 50Hz interrupt
+    sync();
     set_registers(r, mask);
+
   }
 
   return 0;
