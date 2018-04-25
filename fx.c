@@ -11,12 +11,12 @@ char sampleChannel;
 int sampleCounter = 0;
 int sampleLength = 0;
 
-ISR(TIMER1_COMPA_vect)
-{
-    if (sampleCounter < sampleLength) {
-        send_data(sampleChannel, pgm_read_byte_near(sampleOffset + sampleCounter++));
-    }
-}
+// ISR(TIMER1_COMPA_vect)
+// {
+//     if (sampleCounter < sampleLength) {
+//         send_data(sampleChannel, pgm_read_byte_near(sampleOffset + sampleCounter++));
+//     }
+// }
 
 void fx_setupTimer()
 {
