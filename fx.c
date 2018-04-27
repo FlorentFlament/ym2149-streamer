@@ -23,6 +23,63 @@ int dd_offsets[32], dd_lengths[32];
 //     }
 // }
 
+/*
+  readYm6Effect(pReg, code, prediv, count) {
+    let voice;
+    let ndrum;
+
+    code = pReg[code] & 0xf0;
+    prediv = (pReg[prediv] >> 5) & 7;
+    count = pReg[count];
+
+    if (code & 0x30) {
+      let tmpFreq;
+
+      voice = ((code & 0x30) >> 4) - 1; // Voice 0,1,2 = A,B,C
+      switch (code & 0xc0) {
+        case 0x00:		// SID
+        case 0x80:		// Sinus-SID
+          prediv = mfpPrediv[prediv];
+          prediv *= count;
+          tmpFreq = 0;
+          if (prediv) {
+            tmpFreq = MFP_CLOCK / prediv;
+            if ((code & 0xc0) == 0x00)
+              // ymChip.sidStart(voice, tmpFreq, pReg[voice + 8] & 15);
+              console.log(`==> sidStart(${voice}, ${tmpFreq}, ${pReg[voice + 8] & 15})`);
+              else
+              // ymChip.sidSinStart(voice, tmpFreq, pReg[voice + 8] & 15);
+              console.log(`==> sidSinStart(${voice}, ${tmpFreq}, ${pReg[voice + 8] & 15})`);
+            }
+          break;
+
+        case 0x40:		// DigiDrum
+          ndrum = pReg[voice + 8] & 31;
+          if ((ndrum >= 0) && (ndrum < this.header.nbDigidrumsSample)) {
+            prediv = mfpPrediv[prediv];
+            prediv *= count;
+            if (prediv > 0) {
+              tmpFreq = MFP_CLOCK / prediv;
+              // ymChip.drumStart(voice, pDrumTab[ndrum].pData, pDrumTab[ndrum].size, tmpFreq);
+              console.log(`==> drumStart(${voice}, ${ndrum}, ${this.digiDrums[ndrum].length}, ${sampleFrq})`);
+            }
+          }
+          break;
+
+        case 0xc0:		// Sync-Buzzer. (https://youtu.be/5As0eMhajp4)
+          prediv = mfpPrediv[prediv];
+          prediv *= count;
+          tmpFreq = 0;
+          if (prediv) {
+            tmpFreq = MFP_CLOCK / prediv;
+            // ymChip.syncBuzzerStart(tmpFreq, pReg[voice + 8] & 15);
+            console.log(`==> syncBuzzerStart(${tmpFreq}, ${pReg[voice + 8] & 15})`);
+          }
+          break;
+      }
+    }
+  }
+*/
 void fx_loadDigidrum() {
     int n, length;
 
