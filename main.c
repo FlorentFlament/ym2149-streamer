@@ -3,10 +3,6 @@
 #include "ym2149.h"
 #include "fx.h"
 
-#define MFP2AVR (16/2.4576)    // Arduino@16MHz / MFP@2.4576MHz
-// MFP predivisor
-static const int mfpPrediv[8] = {0, 4, 10, 16, 50, 64, 100, 200};
-
 typedef struct _s_frame {
   uint16_t mask;
   uint8_t regs[16];
@@ -15,17 +11,27 @@ typedef struct _s_frame {
 // These are shared between the interrupt vector and the main loop,
 // so we mark them volatile.
 FRAME frame;  // well, expect for this one as it is "read-only"
+uint8_t swTCNT0Max = 0;
 volatile uint8_t nbFrames = 0;
 volatile uint8_t syncFlag = 0;
+volatile uint8_t swTCNT0 = 0;
 
 // Song vector
-ISR(TIMER1_COMPA_vect) {
-  if (nbFrames) {
-    set_registers(frame.regs, frame.mask);
-    nbFrames --;
-  }
+ISR(TIMER0_COMPA_vect) {
 
-  syncFlag = 0;
+  if (swTCNT0 ++ == swTCNT0Max) {
+    swTCNT0 = 0;
+///// @16MHz/64/(TCNTC0 + 1)/(swTCNT0Max + 1)
+    if (nbFrames) {
+      set_registers(frame.regs, frame.mask);
+      fx_playYM6((uint8_t *)&(frame.regs));
+      fx_playYM6((uint8_t *)&(frame.regs));
+      nbFrames --;
+    }
+
+    syncFlag = 0;
+//////
+  }
 }
 
 void sync() {
@@ -33,16 +39,43 @@ void sync() {
   while (syncFlag != 0);
 }
 
-void setupSongTimer(uint16_t counter) {
-    //timer1 : song interrupt
-    cli();
-    TCCR1A = 0;              // timer reset
-    TCCR1B = 0;              // timer reset
-    OCR1A = counter;         // counter = ((16Mhz / 64) / freqHz) - 1
-    TCCR1B |= (1 << WGM12);  //CTC mode
-    TCCR1B |= ((1 << CS10) | (1 << CS11));   // timer ticks = clock ticks / 64
-    TIMSK1 |= (1 << OCIE1A); // enable compare
-    sei();
+///// @16MHz/64/(TCNTC0 + 1)/(swTCNT0Max + 1)
+
+// | hwCounter | swCounter |        Freq (Hz) 
+// |           |           | prediv=64   prediv=256
+// |-----------------------------------|------------
+// | 0         | 0         | 250000    | 62500
+// | 7         | 7         | 3906.25   | 976.5625
+// | 99        | 0         | 2500      | 625
+// | 124       | 0         | 2000      | 500
+// | 11        | 12        | 1602.56   | 400.64
+// | 24        | 24        | 400       | 100
+// | 49        | 24        | 200       | 50
+// | 49        | 49        | 100       | 25
+// | 49        | 99        | 50        | 12.5
+// | 99        | 99        | 25        | 6.25
+// | 199       | 99        | 12.5      | 3.125
+// | 199       | 199       | 6.25      | 1.5625
+// | 255       | 255       | 3.8...    | ~1
+
+void setupSongTimer(uint16_t freqHz) {
+  uint8_t hwCounter, swCounter;
+
+  hwCounter = 49;
+  swCounter = (5000 / freqHz) - 1;
+
+  cli();
+
+  swTCNT0Max = swCounter;
+  //timer0 : song interrupt
+  TCCR0A = 0;              // timer reset
+  TCCR0B = 0;              // timer reset
+  OCR0A = hwCounter;       // counter = ((16Mhz / 64) / freqHz) - 1
+  TCCR0A |= (1 << WGM01);  //CTC mode
+  TCCR0B |= ((1 << CS01) | (1 << CS00));   // timer ticks = clock ticks / 64
+  TIMSK0 |= (1 << OCIE0A); // enable compare
+
+  sei();
 }
 
 void clear_frame(FRAME *f)
@@ -79,7 +112,7 @@ int main()
 
   set_bus_ctl();
   initUART();
-  setupSongTimer(24999); // Start timer @ 10Hz by default (idle)
+  setupSongTimer(10); // Start timer @10Hz by default (idle)
   // Mute and turn off leds
   clear_frame(&frame);  
   nbFrames = 1;
@@ -94,7 +127,7 @@ main_loop:
   switch(cmd) {
     case 0:         // NOP
       break;
-    case 1:         // recvCounter
+    case 1:         // recvRateHz
       setupSongTimer(getUShort());
       break;
     case 2:         // recvFrame
