@@ -7,24 +7,6 @@
 #define DATA_WRITE (0x02 << 2)
 #define ADDRESS_MODE (0x03 << 2)
 
-// Sets a 4MHz clock OC2A (PORTB3)
-void set_ym_clock(void) {
-  DDRB |= 0x01 << PORTB3;
-  // Toggle OC2A on compare match
-  TCCR2A &= ~(0x01 << COM2A1);
-  TCCR2A |=   0x01 << COM2A0;
-  // Clear Timer on Compare match
-  TCCR2B &= ~(0x01 << WGM22);
-  TCCR2A |=   0x01 << WGM21;
-  TCCR2A &= ~(0x01 << WGM20);
-  // Use CLK I/O without prescaling
-  TCCR2B &= ~(0x01 << CS22);
-  TCCR2B &= ~(0x01 << CS21);
-  TCCR2B |=   0x01 << CS20;
-  // Divide the 16MHz clock by 8 -> 2MHz
-  OCR2A = 3;
-}
-
 void set_bus_ctl(void) {
   DDRC |= 0x0c; // Bits 2 and 3
 }
@@ -55,6 +37,32 @@ void set_data(char data) {
   _delay_us(1.); // 300ns < tDW < 10us
   PORTC = (PORTC & 0xf3) /*INACTIVE*/ ; // To fit tDW max
   _delay_us(1.); // tDH = 80ns
+}
+
+void set_registers(unsigned char *regs, unsigned int mask) {
+  int addr;
+
+  //cli();
+  set_data_out();
+
+  for(addr = 0; addr < 16; addr++) {
+    if (mask & (1<<addr)) {
+      PORTC = (PORTC & 0xf3) | ADDRESS_MODE;
+      PORTC = (PORTC & 0xfc) | (addr & 0x03); // 2 first bits ont PORTC
+      PORTD = (PORTD & 0x02) | (addr & 0xfc); // 6 last bits on PORTD
+      _delay_us(1.); //tAS = 300ns
+      PORTC = (PORTC & 0xf3) /*INACTIVE*/ ;
+      _delay_us(1.); //tAH = 80ns
+      PORTC = (PORTC & 0xfc) | (*regs & 0x03); // 2 first bits ont PORTC
+      PORTD = (PORTD & 0x02) | (*regs & 0xfc); // 6 last bits on PORTD
+      PORTC = (PORTC & 0xf3) | DATA_WRITE;
+      _delay_us(1.); // 300ns < tDW < 10us
+      PORTC = (PORTC & 0xf3) /*INACTIVE*/ ; // To fit tDW max
+      _delay_us(1.); // tDH = 80ns
+    }
+    regs++;
+  }
+  //sei();
 }
 
 char get_data(void) {

@@ -57,6 +57,12 @@ uint8_t getByte(void)
 	return (uint8_t) UDR0;
 }
 
+uint16_t getUShort(void) {
+	uint16_t i = 0;
+
+	i = getByte();
+	return (i << 8) | getByte();
+}
 
 /*! \brief Transmits a byte
  * 	Use this function if the TX interrupt is not enabled.
