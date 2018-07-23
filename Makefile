@@ -1,3 +1,4 @@
+baud=57600
 avrType=atmega328p
 avrFreq=16000000 # 16 Mhz
 programmerDev=/dev/ttyUSB0
@@ -22,7 +23,7 @@ main.hex: main.elf
 	avr-objcopy -j .text -j .data -O ihex $^ $@
 
 flash: main.hex
-	avrdude -p$(avrType) -c$(programmerType) -P$(programmerDev) -v -U flash:w:$<
+	avrdude -p$(avrType) -c$(programmerType) -P$(programmerDev) -b$(baud) -v -U flash:w:$<
 
 clean:
 	rm -f main.hex main.elf $(objects)
