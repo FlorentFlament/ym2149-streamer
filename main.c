@@ -27,7 +27,12 @@ int main() {
     for (i=0; i<16; i++) {
       data[i] = getByte();
     }
-    for (i=0; i<14; i++) {
+
+    // Working around envelope issue (kind of). When writing on the
+    // envelope shape register, it resets the envelope. This cannot be
+    // properly expressed with the YM file format. So not using it.
+    // Thanks sebdel: https://github.com/sebdel
+    for (i=0; i<13; i++) {
       send_data(i, data[i]);
     }
 
