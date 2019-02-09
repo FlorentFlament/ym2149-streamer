@@ -31,12 +31,19 @@ class YmReader(object):
          d['loop_frame'],
          d['extra_data'],
         ) = struct.unpack(ym_header, s)
+
+        if d['check_string'] != 'LeOnArD!':
+            raise Exception('Unsupported file format: Bad check string: {}'.format(d['check_string']))
+        if d['id'] != 'YM5!':
+            raise Exception('Unsupported file format: Only YM5 supported (got {})'.format(d['id']))
+        if d['nb_digidrums'] != 0:
+            raise Exception('Unsupported file format: Digidrums are not supported')
+        if d['chip_clock'] not in (1000000, 2000000):
+            raise Exception('Unsupported file format: Invalid chip clock: {}'.format(d['chip_clock']))
+
         d['interleaved'] = d['song_attributes'] & 0x01 != 0
         self.__header = d
 
-        if self.__header['nb_digidrums'] != 0:
-            raise Exception(
-                'Unsupported file format: Digidrums are not supported')
         self.__parse_extra_infos()
 
     def __read_data_interleaved(self):
