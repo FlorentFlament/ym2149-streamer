@@ -34,7 +34,7 @@ class YmReader(object):
 
         if d['check_string'] != 'LeOnArD!':
             raise Exception('Unsupported file format: Bad check string: {}'.format(d['check_string']))
-        if d['id'] != 'YM5!':
+        if d['id'] not in ('YM5!', 'YM6!'):
             raise Exception('Unsupported file format: Only YM5 supported (got {})'.format(d['id']))
         if d['nb_digidrums'] != 0:
             raise Exception('Unsupported file format: Digidrums are not supported')
