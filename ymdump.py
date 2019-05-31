@@ -9,9 +9,9 @@ def divide_by2(l):
     return (val%256, val/256)
 
 def main():
-    if len(sys.argv) not in (2, 3):
+    if len(sys.argv) not in (2, 3, 4):
         print("Dump YM file to z88dk z80asm format.")
-        print("Syntax is: {} <ym_filepath> [max_frames_count]".format(sys.argv[0]))
+        print("Syntax is: {} <ym_filepath> [max_frames_count] [frames_offset]".format(sys.argv[0]))
         exit(0)
 
 
@@ -22,9 +22,12 @@ def main():
 
         data = ym.get_data()
         # Possibly capping number of frames to dump
-        if len(sys.argv) == 3:
+        if len(sys.argv) >= 3:
             max_frames = int(sys.argv[2])
-            data = data[:max_frames]
+            f_offset = 0
+            if len(sys.argv) == 4:
+                f_offset = int(sys.argv[3])
+            data = data[f_offset:f_offset+max_frames]
 
         # Printing out stuff
         print("\tPUBLIC _{}".format(songname))
